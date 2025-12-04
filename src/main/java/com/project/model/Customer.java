@@ -22,31 +22,33 @@ import jakarta.validation.constraints.Pattern;
 @Entity
 public class Customer {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long customerId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "customer_id")
+    private Long customerId;
 
-	@Column(nullable = false)
-	private String cname;
+    @Column(name = "cname", nullable = false)
+    private String cname;
 
-	@Email
-	@Column(unique = true)
-	private String email;
+    @Email
+    @Column(name = "email", unique = true)
+    private String email;
 
-	@Enumerated(EnumType.STRING)
-	private Role role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
-	@JsonProperty(access = Access.WRITE_ONLY)
-	@Column(nullable = false)
-	private String password;
+    @JsonProperty(access = Access.WRITE_ONLY)
+    @Column(name = "password", nullable = false)
+    private String password;
 
-	@Pattern(regexp = "[0-9]{10}", message = "Invalid contact format. Please provide a valid 10-digit mobile number.")
-	@Column(unique=true ,nullable = true)
-	private String contact;
+    @Pattern(regexp = "[0-9]{10}", message = "Invalid contact format. Please provide a valid 10-digit mobile number.")
+    @Column(name = "contact", unique = true, nullable = true)
+    private String contact;
 
-	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-	@JsonManagedReference
-	private List<Booking> booking;
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Booking> booking;
 
 	public Customer() {
 	}

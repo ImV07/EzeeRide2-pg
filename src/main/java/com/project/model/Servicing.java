@@ -14,30 +14,32 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class Servicing {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long servicingId;
-	
-	@Column(nullable = false)
-	private String serviceDescription;
-	
-	private LocalDate serviceDate=LocalDate.now();
-	
-	@Column(nullable = false)
-	private double servicingCost;
-	
-	private String remarks;
-	
-	@Column
-	private boolean serviceStatus=true;
-	
-	@Column
-	private boolean paymentStatus=false;
-	
-	
-	@ManyToOne
-	@JoinColumn(name = "vehicle_id",referencedColumnName = "vehicleId",nullable = false)
-	private Vehicle vehicle;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "servicing_id")
+    private Long servicingId;
+
+    @Column(name = "service_description", nullable = false)
+    private String serviceDescription;
+
+    @Column(name = "service_date")
+    private LocalDate serviceDate = LocalDate.now();
+
+    @Column(name = "servicing_cost", nullable = false)
+    private double servicingCost;
+
+    @Column(name = "remarks")
+    private String remarks;
+
+    @Column(name = "service_status")
+    private boolean serviceStatus = true;
+
+    @Column(name = "payment_status")
+    private boolean paymentStatus = false;
+
+    @ManyToOne
+    @JoinColumn(name = "vehicle_id", nullable = false)
+    private Vehicle vehicle;
 	
 	public Servicing() {}
 	

@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.project.main</groupId>
-	<artifactId>EzeeRide2</artifactId>
+	<artifactId>EzeeRide2pg</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>EzeeRide2</name>
+	<name>EzeeRide2pg</name>
 	<description>Project Implementation</description>
 	<url/>
 	<licenses>
@@ -41,12 +41,12 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.6.0</version>
+        </dependency>
+        <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>

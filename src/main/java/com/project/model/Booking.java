@@ -23,49 +23,54 @@ import jakarta.validation.constraints.Size;
 @Entity
 public class Booking {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long bookingId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
+    private Long bookingId;
 
-	private LocalDate dateOfBooking;
-	
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
-	private LocalDate startDate;
+    @Column(name = "date_of_booking")
+    private LocalDate dateOfBooking;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
-	private LocalDate endDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @Column(name = "start_date")
+    private LocalDate startDate;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
-	@Enumerated(EnumType.STRING)
-	private BookingStatus status=BookingStatus.PENDING;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private BookingStatus status = BookingStatus.PENDING;
 
-	private double amount;
-	
-	private boolean paymentStatus=false;
-	
-	@Size(max=800)
-	@Column(nullable = true)
-	private String cancelReason;
+    @Column(name = "amount")
+    private double amount;
 
-	@ManyToOne
-	@JoinColumn(name="customer_id",nullable = false)
-	@JsonBackReference
-	private Customer customer;
-	
-	@Column(nullable = true)
-	private Integer groupSize;
+    @Column(name = "payment_status")
+    private boolean paymentStatus = false;
 
-	@Column(nullable = true)
-	private String destination;
+    @Size(max = 800)
+    @Column(name = "cancel_reason")
+    private String cancelReason;
 
-	@ManyToMany
-	@JoinTable
-		(
-		 name = "booking_vehicle",
-		 joinColumns = @JoinColumn(name = "booking_id"),
-		 inverseJoinColumns = @JoinColumn(name = "vehicle_id", referencedColumnName = "vehicleId")
-		 )
-	private List<Vehicle> vehicle;
+    @ManyToOne
+    @JoinColumn(name = "customer_id", nullable = false)
+    @JsonBackReference
+    private Customer customer;
+
+    @Column(name = "group_size")
+    private Integer groupSize;
+
+    @Column(name = "destination")
+    private String destination;
+
+    @ManyToMany
+    @JoinTable(
+            name = "booking_vehicle",
+            joinColumns = @JoinColumn(name = "booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "vehicle_id")
+    )
+    private List<Vehicle> vehicle;
 	
 	public Booking() {}
 

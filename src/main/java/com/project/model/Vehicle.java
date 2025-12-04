@@ -26,46 +26,63 @@ import jakarta.persistence.Table;
 @Table(name = "vehicle")
 public class Vehicle {
 
-	@Id
-	@SequenceGenerator(name = "vehicle_seq", sequenceName = "vehicle_sequence", initialValue = 1001, allocationSize = 1)
-	@GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "vehicle_seq")
-	private Long vehicleId;
+    @Id
+    @SequenceGenerator(name = "vehicle_seq", sequenceName = "vehicle_sequence", initialValue = 1001, allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "vehicle_seq")
+    @Column(name = "vehicle_id")
+    private Long vehicleId;
 
-	private String city;
+    @Column(name = "city")
+    private String city;
 
-	@Column(unique = true, nullable = false)
-	private String registrationNo;
+    @Column(name = "registration_no", unique = true, nullable = false)
+    private String registrationNo;
 
-	private String brand;
-	private String model;
-	private String type;
-	private String color;
+    @Column(name = "brand")
+    private String brand;
 
-	private Integer capacity;
+    @Column(name = "model")
+    private String model;
 
-	private Integer yearOfManufacture;
+    @Column(name = "type")
+    private String type;
 
-	private boolean available = true;
+    @Column(name = "color")
+    private String color;
 
-	private double chargePerDay;
+    @Column(name = "capacity")
+    private Integer capacity;
 
-	private String vehicleCondition;
+    @Column(name = "year_of_manufacture")
+    private Integer yearOfManufacture;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
-	private LocalDate insuranceDate;
+    @Column(name = "available")
+    private boolean available = true;
 
-	@Enumerated(EnumType.STRING)
-	private FuelType fuelType;
+    @Column(name = "charge_per_day")
+    private double chargePerDay;
 
-	private double providedKm;
+    @Column(name = "vehicle_condition")
+    private String vehicleCondition;
 
-	@JsonIgnore
-	@ManyToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
-	private List<Booking> booking;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    @Column(name = "insurance_date")
+    private LocalDate insuranceDate;
 
-	@JsonIgnore
-	@OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
-	private List<Servicing> servicing;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fuel_type")
+    private FuelType fuelType;
+
+    @Column(name = "provided_km")
+    private double providedKm;
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
+    private List<Booking> booking;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
+    private List<Servicing> servicing;
 
 	public Vehicle() {
 	}

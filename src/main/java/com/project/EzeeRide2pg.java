@@ -8,12 +8,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @EnableMethodSecurity
 @SpringBootApplication
 @EnableScheduling
-public class EzeeRideApplication {
-
-
+public class EzeeRide2pg {
 
 	public static void main(String[] args) {
-		SpringApplication.run(EzeeRideApplication.class, args);
+		SpringApplication.run(EzeeRide2pg.class, args);
 	}
 
 }
