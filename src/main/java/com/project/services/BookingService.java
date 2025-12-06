@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.project.util.TextNormalizer;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -58,7 +59,9 @@ public class BookingService {
 		    long days = ChronoUnit.DAYS.between(initialDetails.getStartDate(), initialDetails.getEndDate());
 		    if (days <= 0) throw new IllegalArgumentException("End date must be after start date");
 
-		    List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(initialDetails.getDestination());
+            String normalizedDestination=TextNormalizer.upper(initialDetails.getDestination());
+
+		    List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedDestination);
 		    
 		   List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
 		    				 .map(v -> modelMapper.map(v, VehicleDTO.class))
@@ -71,16 +74,16 @@ public class BookingService {
 		    booking.setDateOfBooking(LocalDate.now());
 		    booking.setStartDate(initialDetails.getStartDate());
 		    booking.setEndDate(initialDetails.getEndDate());
-		    booking.setDestination(initialDetails.getDestination());
+		    booking.setDestination(normalizedDestination);
 		    booking.setGroupSize(initialDetails.getGroupSize());
 		    
 		   bookingRepo.save(booking);
 		    
 		    AvailableVehicleDTO initialResponse =new AvailableVehicleDTO();
 		    initialResponse.setBookingId(booking.getBookingId());
-		    initialResponse.setDestination(initialDetails.getDestination());
+		    initialResponse.setDestination(normalizedDestination);
 		    initialResponse.setAvailableVehicles(vehicleDTOs);
-		    initialResponse.setMessage("available vehicles for the destination: "+initialDetails.getDestination());
+		    initialResponse.setMessage("available vehicles for the destination: "+normalizedDestination);
 
 		    return initialResponse;
 		}
@@ -150,22 +153,24 @@ public class BookingService {
 			throw new BadRequestException("Destination can only be changed if booking is PENDING.");
 		}
 
-		booking.setDestination(newDestination.getDestination());
+        String normalizedNewDestination=TextNormalizer.upper(newDestination.getDestination());
+
+		booking.setDestination(normalizedNewDestination);
 		booking.setStartDate(newDestination.getStartDate());
 		booking.setEndDate(newDestination.getEndDate());
 		booking.setGroupSize(newDestination.getGroupSize());
 		bookingRepo.save(booking);
 
-		List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(newDestination.getDestination());
+		List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedNewDestination);
 		List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
 				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
 
 
 		 AvailableVehicleDTO availableVehicle =new AvailableVehicleDTO();		 
 		 availableVehicle.setBookingId(bookingId);
-		    availableVehicle.setDestination(newDestination.getDestination());
+		    availableVehicle.setDestination(normalizedNewDestination);
 		    availableVehicle.setAvailableVehicles(vehicleDTOs);
-		    availableVehicle.setMessage("available vehicles for the destination: "+newDestination.getDestination());
+		    availableVehicle.setMessage("available vehicles for the destination: "+normalizedNewDestination);
 
 		    return availableVehicle;
 	}

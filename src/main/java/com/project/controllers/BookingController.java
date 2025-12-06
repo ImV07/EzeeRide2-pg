@@ -93,7 +93,7 @@ public class BookingController {
 			booking.setStatus(BookingStatus.CONFIRM);
 			booking.setCancelReason(null);
 
-			//booking.getVehicle().forEach(vehicle -> vehicle.setAvailable(false));
+			booking.getVehicle().forEach(vehicle -> vehicle.setAvailable(false));
 
 			String sub1 = "Booking Confirmed";
 			String body1 = booking.getCustomer().getCname() + "\n\nYour booking is confirmed with bookingId: "
