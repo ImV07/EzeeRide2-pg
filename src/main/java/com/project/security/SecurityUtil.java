@@ -18,6 +18,6 @@ public class SecurityUtil {
 	        if (!loggedInEmail.equals(resourceOwner.getEmail()) && !role.equals("ADMIN")) {
 	            throw new SecurityException("Access denied: you can only access your own data or must be an admin.");
 	        }
-	    }
+     }
 	
 }

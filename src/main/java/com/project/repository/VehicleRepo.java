@@ -15,7 +15,7 @@ public interface VehicleRepo extends JpaRepository<Vehicle, Long > {
 	@Query("SELECT v FROM Vehicle v WHERE UPPER(v.registrationNo) LIKE CONCAT(:stateCode, '%')")
 	List<Vehicle> findAllByRegistrationNo(@Param("stateCode") String stateCode);
 
-	@Query("SELECT v FROM Vehicle v WHERE v.city = :destination AND v.available = true")
+	@Query("SELECT v FROM Vehicle v WHERE UPPER(v.city) = UPPER(:destination) AND v.available = true")
 	List<Vehicle> findAvailableVehiclesByCity(@Param("destination") String destination);
 
 //	void save(List<Vehicle> vehicle);

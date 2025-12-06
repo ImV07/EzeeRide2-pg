@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.enums.FuelType;
 
+import com.project.util.TextNormalizer;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,7 +66,7 @@ public class Vehicle {
     @Column(name = "vehicle_condition")
     private String vehicleCondition;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "insurance_date")
     private LocalDate insuranceDate;
 
@@ -256,17 +257,17 @@ public class Vehicle {
 				+ ", fuelType=" + fuelType + ", providedKm=" + providedKm + ", booking=" + booking + ", servicing="
 				+ servicing + "]";
 	}
-	
-	@PrePersist
+
+    @PrePersist
     @PreUpdate
-    private void formatFieldsToUpper() {
-        if (this.city != null) this.city = this.city.toUpperCase();
-        if (this.registrationNo != null) this.registrationNo = this.registrationNo.toUpperCase();
-        if (this.brand != null) this.brand = this.brand.toUpperCase();
-        if (this.model != null) this.model = this.model.toUpperCase();
-        if (this.type != null) this.type = this.type.toUpperCase();
-        if (this.color != null) this.color = this.color.toUpperCase();
-        if (this.vehicleCondition != null) this.vehicleCondition = this.vehicleCondition.toUpperCase();
+    public void normalize() {
+        this.brand = TextNormalizer.upper(this.brand);
+        this.city = TextNormalizer.upper(this.city);
+        this.color = TextNormalizer.upper(this.color);
+        this.model = TextNormalizer.upper(this.model);
+        this.type = TextNormalizer.upper(this.type);
+        this.vehicleCondition = TextNormalizer.upper(this.vehicleCondition);
+        this.registrationNo = TextNormalizer.upper(this.registrationNo);
     }
 
 }

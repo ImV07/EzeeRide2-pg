@@ -5,12 +5,14 @@ import org.springframework.stereotype.Repository;
 
 import com.project.model.Customer;
 
+import java.util.Optional;
+
 
 @Repository
 public interface CustomerRepo extends JpaRepository<Customer, Long>  {
 
-	Customer findByEmail(String email);
-	
-	Customer findByCname(String cname);
-	
+	Optional<Customer> findByEmail(String email);
+
+	Optional<Customer> findByCname(String cname);
+
 }

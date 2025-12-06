@@ -1,12 +1,17 @@
 package com.project.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDate;
 
 public class ServicingDTO {
 
     private Long servicingId;
     private String serviceDescription;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate serviceDate;
+
     private Double servicingCost;
     private String remarks;
     private boolean serviceStatus;

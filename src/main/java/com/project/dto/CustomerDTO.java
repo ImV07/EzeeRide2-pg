@@ -1,38 +1,52 @@
 package com.project.dto;
 
+import com.project.enums.Role;
+
 public class CustomerDTO {
 
-	
-	private Long customerId;
+    private Long customerId;
+    private String cname;
+    private String email;
+    private String contact;
+    private Role role;
 
-	private String cname;
+    public Long getCustomerId() {
+        return customerId;
+    }
 
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
 
-	public CustomerDTO() {}
-	
-	public CustomerDTO(Long customerId, String cname) {
-		super();
-		this.customerId = customerId;
-		this.cname = cname;
-	}
+    public Role getRole() {
+        return role;
+    }
 
-	public Long getCustomerId() {
-		return customerId;
-	}
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
-	public void setCustomerId(Long customerId) {
-		this.customerId = customerId;
-	}
+    public String getContact() {
+        return contact;
+    }
 
-	public String getCname() {
-		return cname;
-	}
+    public void setContact(String contact) {
+        this.contact = contact;
+    }
 
-	public void setCname(String cname) {
-		this.cname = cname;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	
+    public String getCname() {
+        return cname;
+    }
+
+    public void setCname(String cname) {
+        this.cname = cname;
+    }
 }
