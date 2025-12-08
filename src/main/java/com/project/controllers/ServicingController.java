@@ -2,6 +2,8 @@ package com.project.controllers;
 
 import java.util.List;
 
+import com.project.dto.ServiceRequestDTO;
+import com.project.dto.ServiceStatusDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,8 +25,8 @@ public class ServicingController {
 	private ServicingService service;
 	
 	
-	@PostMapping("/{vid}")
-	public ServicingDTO RestPost(@PathVariable Long vid,@RequestBody Servicing details) {
+	@PostMapping("/add/{vid}")
+	public ServicingDTO RestPost(@PathVariable Long vid,@RequestBody ServiceRequestDTO details) {
 		return service.addToService(vid,details);
 	}
 	
@@ -39,7 +41,7 @@ public class ServicingController {
 	}
 	
 	@PatchMapping("/update/{sid}")
-	public ServicingDTO patch(@PathVariable Long sid,@RequestBody Servicing updatedDetails ) {
+	public ServicingDTO patch(@PathVariable Long sid,@RequestBody ServiceStatusDTO updatedDetails ) {
 		return service.update(sid,updatedDetails);
 	}
 	

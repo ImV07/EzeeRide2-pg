@@ -1,8 +1,11 @@
 package com.project.services;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.project.dto.ServiceRequestDTO;
+import com.project.dto.ServiceStatusDTO;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +35,7 @@ public class ServicingService {
 	private static final Logger logger=LoggerFactory.getLogger(ServicingService.class);
 	
 	//	add vehicle to service with vehicleid
-	public ServicingDTO addToService(Long vid, Servicing details) {
+	public ServicingDTO addToService(Long vid, ServiceRequestDTO details) {
 		
 		Vehicle vehicle=vehicleRepo.findById(vid).orElseThrow(()-> new ResourceNotFound("vehicle not found!!!"));
 		
@@ -42,12 +45,20 @@ public class ServicingService {
 		
 		vehicle.setAvailable(false);
 		vehicleRepo.save(vehicle);
-		
-		logger.info("vehicle with id "+vid+" is sent to servicing");
-		
-		details.setVehicles(vehicle);
-		servicingRepo.save(details);
-		return mapper.map(details, ServicingDTO.class);
+
+        Servicing servicing = mapper.map(details, Servicing.class);
+
+        servicing.setVehicles(vehicle);
+        if (servicing.getServiceDate() == null) {
+            servicing.setServiceDate(LocalDate.now());
+        }
+
+        servicingRepo.save(servicing);
+
+        ServicingDTO response = mapper.map(servicing, ServicingDTO.class);
+        response.setVehicleId(vehicle.getVehicleId());
+
+        return response;
 	}
 
 	
@@ -55,7 +66,15 @@ public class ServicingService {
 	public List<ServicingDTO> getAllServiceDetails() {
 		return servicingRepo.findAll()
 				.stream()
-		        .map(service -> mapper.map(service, ServicingDTO.class))
+                .map(service -> {
+                    ServicingDTO dto = mapper.map(service, ServicingDTO.class);
+
+                    if (service.getVehicles() != null) {
+                        dto.setVehicleId(service.getVehicles().getVehicleId());
+                    }
+
+                    return dto;
+                })
 		        .collect(Collectors.toList());
 	}
 
@@ -67,34 +86,27 @@ public class ServicingService {
 
 	
 	//	patch update by serviceid
-	public ServicingDTO update(Long sid, Servicing updatedDetails) {
+	public ServicingDTO update(Long sid, ServiceStatusDTO updatedDetails) {
 		Servicing existingService= servicingRepo.findById(sid).orElseThrow(()->new ResourceNotFound("servicing not found with id"+sid));
 		
-		if(updatedDetails.getServiceDescription() !=null) {
-			existingService.setServiceDescription(updatedDetails.getServiceDescription());
-		}
-		if(updatedDetails.getServicingCost() !=0.0) {
-			existingService.setServicingCost(updatedDetails.getServicingCost());
-		}
-		if(updatedDetails.getRemarks() !=null) {
-			existingService.setRemarks(updatedDetails.getRemarks());
-		}
-		if(updatedDetails.getVehicles() !=null) {
-			existingService.setVehicles(updatedDetails.getVehicles());
-		}
-		
+
 		existingService.setServiceStatus(updatedDetails.isServiceStatus());
 		existingService.setPaymentStatus(updatedDetails.isPaymentStatus());
 		
 		Vehicle vehicle = existingService.getVehicles();
+
 	    if (!existingService.isServiceStatus() && existingService.isPaymentStatus()) {
 	        vehicle.setAvailable(true);
 	    }
 	    
 	    logger.info("Updated servicing and vehicle availability for Vehicle ID: " + vehicle.getVehicleId());
 	    
-	    servicingRepo.save(existingService);
-	    return mapper.map(existingService, ServicingDTO.class);
+	    Servicing saved=servicingRepo.save(existingService);
+
+        ServicingDTO dto=mapper.map(saved,ServicingDTO.class);
+        dto.setVehicleId(saved.getVehicles().getVehicleId());
+
+	    return dto;
 	}
 	
 	
