@@ -1,9 +1,6 @@
 package com.project.controllers;
 
-import com.project.dto.AvailableVehicleDTO;
-import com.project.dto.BookingDTO;
-import com.project.dto.PaymentUpdateDTO;
-import com.project.dto.VehicleDTO;
+import com.project.dto.*;
 import com.project.enums.BookingStatus;
 import com.project.exception.BadRequestException;
 import com.project.exception.ResourceNotFound;
@@ -13,11 +10,15 @@ import com.project.repository.BookingRepo;
 import com.project.security.SecurityUtil;
 import com.project.services.BookingService;
 import com.project.services.EmailService;
+import com.project.util.PageMapper;
+import com.project.util.PageResponse;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,12 +45,15 @@ public class BookingController {
 
 //////////////////////////
 	// Get All Booking
-	@GetMapping
-	public Page<Booking> restGetALL(
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "4") int size) {
-		return bookingService.getAll(page,size);
-	}
+@GetMapping
+public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue ="4") int size) {
+
+    Pageable pageable= PageRequest.of(page, size);
+    Page<Booking> pageDate= bookingRepo.findAll(pageable);
+
+    return PageMapper.map(pageDate, booking-> modelMapper.map(booking,BookingDTO.class));
+}
 	
 	
 //////////////////////////
@@ -146,7 +150,7 @@ public class BookingController {
 		List<VehicleDTO> vehicleDTOs = existingBooking.getVehicle().stream()
 				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
 
-		bookingDTO.setVehicles(vehicleDTOs);
+		bookingDTO.setVehicle(vehicleDTOs);
 		bookingDTO.setMessage("Your booking information");
 		logger.info("ADMIN / User: " + customer.getCname() + " checked booking");
 		return bookingDTO;

@@ -9,7 +9,7 @@ public class BookingDTO {
 
     private Long bookingId;
     private Long customerId;
-    private List<VehicleDTO> vehicles;
+    private List<VehicleDTO> vehicle;
     private double amount;
     private String status;
 
@@ -30,7 +30,7 @@ public class BookingDTO {
 		super();
 		this.bookingId = bookingId;
 		this.customerId = customerId;
-		this.vehicles = vehicles;
+		this.vehicle = vehicles;
 		this.amount = amount;
 		this.status = status;
 		this.startDate = startDate;
@@ -56,12 +56,12 @@ public class BookingDTO {
 		this.customerId = customerId;
 	}
 
-	public List<VehicleDTO> getVehicles() {
-		return vehicles;
+	public List<VehicleDTO> getVehicle() {
+		return vehicle;
 	}
 
-	public void setVehicles(List<VehicleDTO> vehicles) {
-		this.vehicles = vehicles;
+	public void setVehicle(List<VehicleDTO> vehicle) {
+		this.vehicle = vehicle;
 	}
 
 	public double getAmount() {

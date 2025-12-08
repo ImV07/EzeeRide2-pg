@@ -8,9 +8,6 @@ import java.util.stream.Collectors;
 import com.project.util.TextNormalizer;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.project.dto.AvailableVehicleDTO;
@@ -40,15 +37,7 @@ public class BookingService {
 
 	@Autowired
 	private ModelMapper modelMapper;
-	
-/////////////////////
-	// Get All
-	public Page<Booking> getAll(int page,int size) {
-		Pageable pageable = PageRequest.of(page, size);
-		return bookingRepo.findAll(pageable);
-	}
-	
-	
+
 /////////////////////
 
 	// Initial booking
@@ -134,7 +123,7 @@ public class BookingService {
 		List<VehicleDTO> vehicleDTOList = selectedVehicles.stream()
 				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
 
-		bookingDTO.setVehicles(vehicleDTOList);
+		bookingDTO.setVehicle(vehicleDTOList);
 		bookingDTO.setMessage("Booking will confirm after payment!!");
 
 		return bookingDTO;
