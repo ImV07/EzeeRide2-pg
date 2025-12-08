@@ -5,14 +5,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.project.dto.*;
+import com.project.exception.NoVehiclesAvailableException;
 import com.project.util.TextNormalizer;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.project.dto.AvailableVehicleDTO;
-import com.project.dto.BookingDTO;
-import com.project.dto.VehicleDTO;
 import com.project.enums.BookingStatus;
 import com.project.exception.BadRequestException;
 import com.project.exception.ResourceNotFound;
@@ -41,7 +40,7 @@ public class BookingService {
 /////////////////////
 
 	// Initial booking
-		public AvailableVehicleDTO initiateBooking(Long cid,Booking initialDetails) {
+		public AvailableVehicleDTO initiateBooking(Long cid, InitialBookingDTO initialDetails) {
 		    Customer customer = customerRepo.findById(cid)
 		        .orElseThrow(() -> new ResourceNotFound("Customer not found"));
 
@@ -51,46 +50,42 @@ public class BookingService {
             String normalizedDestination=TextNormalizer.upper(initialDetails.getDestination());
 
 		    List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedDestination);
-		    
-		   List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
+
+            if(availableVehicles.isEmpty()){
+                throw new NoVehiclesAvailableException("No vehicles available for "+ normalizedDestination);
+            }
+
+            List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
 		    				 .map(v -> modelMapper.map(v, VehicleDTO.class))
 		    				 .toList();
-		    				 
+
+
 
 		    Booking booking = new Booking();
-		    
+
 		    booking.setCustomer(customer);
 		    booking.setDateOfBooking(LocalDate.now());
 		    booking.setStartDate(initialDetails.getStartDate());
 		    booking.setEndDate(initialDetails.getEndDate());
 		    booking.setDestination(normalizedDestination);
 		    booking.setGroupSize(initialDetails.getGroupSize());
-		    
-		   bookingRepo.save(booking);
-		    
-		    AvailableVehicleDTO initialResponse =new AvailableVehicleDTO();
-		    initialResponse.setBookingId(booking.getBookingId());
-		    initialResponse.setDestination(normalizedDestination);
-		    initialResponse.setAvailableVehicles(vehicleDTOs);
-		    initialResponse.setMessage("available vehicles for the destination: "+normalizedDestination);
 
-		    return initialResponse;
+		   bookingRepo.save(booking);
+
+
+		    return new AvailableVehicleDTO (booking.getBookingId(),normalizedDestination,vehicleDTOs,"available vehicles for the destination: "+normalizedDestination);
 		}
-	
+
 
 //////////////////
 
 	// Select vehicle from Available Vehicles
-	public BookingDTO vehicleSelection(Long bid,Booking bookingDetails) {
+	public BookingDTO vehicleSelection(Long bid, VehicleSelectionDTO dto) {
 
 		Booking booking=bookingRepo.findById(bid)
 				.orElseThrow(() -> new ResourceNotFound("bookinId not (found / registered) in db "));
 
-		// Get vehicle IDs and fetch vehicle objects
-		List<Long> vehicleIds = bookingDetails.getVehicle().stream().map(Vehicle::getVehicleId)
-				.collect(Collectors.toList());
-
-		List<Vehicle> selectedVehicles = vehicleRepo.findAllById(vehicleIds);
+		List<Vehicle> selectedVehicles = vehicleRepo.findAllById(dto.getVehicleIds());
 
 		for (Vehicle vehicle : selectedVehicles) {
 	        List<Booking> conflicts = bookingRepo.findBookingsConflicts(
@@ -100,8 +95,7 @@ public class BookingService {
 	        );
 
 	        if (!conflicts.isEmpty()) {
-	            throw new BadRequestException("Vehicle ID " + vehicle.getVehicleId() + 
-	                " is already booked from " +
+	            throw new BadRequestException("Vehicle ID " + vehicle.getVehicleId() + " is already booked from " +
 	                conflicts.get(0).getStartDate() + " to " + conflicts.get(0).getEndDate());
 	        }
 	    }
@@ -132,7 +126,7 @@ public class BookingService {
 ////////////////////
 
 //	update destination and fetch available vehicles
-	public AvailableVehicleDTO updateDestination(Long bookingId, Booking newDestination) {
+	public AvailableVehicleDTO updateDestination(Long bookingId, InitialBookingDTO newDestination) {
 
 		Booking booking = bookingRepo.findById(bookingId)
 				.orElseThrow(() -> new ResourceNotFound("booking not found with ID: " + bookingId));
@@ -155,14 +149,8 @@ public class BookingService {
 				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
 
 
-		 AvailableVehicleDTO availableVehicle =new AvailableVehicleDTO();		 
-		 availableVehicle.setBookingId(bookingId);
-		    availableVehicle.setDestination(normalizedNewDestination);
-		    availableVehicle.setAvailableVehicles(vehicleDTOs);
-		    availableVehicle.setMessage("available vehicles for the destination: "+normalizedNewDestination);
+        return new AvailableVehicleDTO(bookingId, normalizedNewDestination, vehicleDTOs, "available vehicles for the destination: "+normalizedNewDestination);
 
-		    return availableVehicle;
 	}
-	
 
 }

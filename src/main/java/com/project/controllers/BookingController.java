@@ -60,7 +60,7 @@ public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int
 
 	// Fetch vehicles for destination
 	@PostMapping("/{cid}")
-	public AvailableVehicleDTO initiateBooking(@PathVariable Long cid, @RequestBody Booking basicDetails) {
+	public AvailableVehicleDTO initiateBooking(@PathVariable Long cid, @RequestBody InitialBookingDTO basicDetails) {
 		return bookingService.initiateBooking(cid, basicDetails);
 	}
 
@@ -68,8 +68,8 @@ public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int
 	
 	// customer select's vehicles for booking
 	@PostMapping("/select-vehicle/{bid}")
-	public BookingDTO selectVehicle(@PathVariable Long bid, @RequestBody Booking bookingDetails) {
-		return bookingService.vehicleSelection(bid, bookingDetails);
+	public BookingDTO selectVehicle(@PathVariable Long bid, @RequestBody VehicleSelectionDTO dto) {
+		return bookingService.vehicleSelection(bid, dto);
 	}
 
 //////////////////////////
@@ -161,7 +161,7 @@ public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int
 	
 	//	update destination by bookingId
 	@PatchMapping("/update/destination/{bid}")
-	public AvailableVehicleDTO updateDestination(@PathVariable Long bid, @RequestBody Booking updateBooking) {
+	public AvailableVehicleDTO updateDestination(@PathVariable Long bid, @RequestBody InitialBookingDTO updateBooking) {
 
 		Booking existingBooking = bookingRepo.findById(bid)
 				.orElseThrow(() -> new ResourceNotFound("Booking not exist with booking id: " + bid));
