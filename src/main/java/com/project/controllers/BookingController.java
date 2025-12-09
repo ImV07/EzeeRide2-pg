@@ -65,7 +65,15 @@ public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int
 	}
 
 //////////////////////////
-	
+
+    @GetMapping("/view/{bid}")
+    public ResumeBookingDTO viewBooking(@PathVariable Long bid){
+
+        return bookingService. resumeBooking(bid);
+    }
+
+//////////////////////////
+
 	// customer select's vehicles for booking
 	@PostMapping("/select-vehicle/{bid}")
 	public BookingDTO selectVehicle(@PathVariable Long bid, @RequestBody VehicleSelectionDTO dto) {

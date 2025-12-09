@@ -6,19 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AvailableVehicleDTO {
 	
-	@JsonProperty("Your Booking-Id")
 	private Long bookingId;
 	
-	@JsonProperty("Your destination")
 	private String destination;
 	
-	@JsonProperty("available Vehicles")
 	private List<VehicleDTO> availableVehicles;
 	
-	@JsonProperty("message")
 	private String message;
-	
-	public AvailableVehicleDTO() {}
+
 
 	public AvailableVehicleDTO(Long bookingId,String destination, List<VehicleDTO> availableVehicles, String message) {
 		super();

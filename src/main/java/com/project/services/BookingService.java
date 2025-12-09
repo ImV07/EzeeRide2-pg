@@ -25,132 +25,162 @@ import com.project.repository.VehicleRepo;
 @Service
 public class BookingService {
 
-	@Autowired
-	private VehicleRepo vehicleRepo;
+    @Autowired
+    private VehicleRepo vehicleRepo;
 
-	@Autowired
-	private BookingRepo bookingRepo;
+    @Autowired
+    private BookingRepo bookingRepo;
 
-	@Autowired
-	private CustomerRepo customerRepo;
+    @Autowired
+    private CustomerRepo customerRepo;
 
-	@Autowired
-	private ModelMapper modelMapper;
+    @Autowired
+    private ModelMapper modelMapper;
 
-/////////////////////
+    /// //////////////////
 
-	// Initial booking
-		public AvailableVehicleDTO initiateBooking(Long cid, InitialBookingDTO initialDetails) {
-		    Customer customer = customerRepo.findById(cid)
-		        .orElseThrow(() -> new ResourceNotFound("Customer not found"));
+    // Initial booking
+    public AvailableVehicleDTO initiateBooking(Long cid, InitialBookingDTO initialDetails) {
+        Customer customer = customerRepo.findById(cid)
+                .orElseThrow(() -> new ResourceNotFound("Customer not found"));
 
-		    long days = ChronoUnit.DAYS.between(initialDetails.getStartDate(), initialDetails.getEndDate());
-		    if (days <= 0) throw new IllegalArgumentException("End date must be after start date");
+        long days = ChronoUnit.DAYS.between(initialDetails.getStartDate(), initialDetails.getEndDate());
+        if (days <= 0) throw new IllegalArgumentException("End date must be after start date");
 
-            String normalizedDestination=TextNormalizer.upper(initialDetails.getDestination());
+        String normalizedDestination = TextNormalizer.upper(initialDetails.getDestination());
 
-		    List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedDestination);
+        List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedDestination);
 
-            if(availableVehicles.isEmpty()){
-                throw new NoVehiclesAvailableException("No vehicles available for "+ normalizedDestination);
+        if (availableVehicles.isEmpty()) {
+            throw new NoVehiclesAvailableException("No vehicles available for " + normalizedDestination);
+        }
+
+        List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
+                .map(v -> modelMapper.map(v, VehicleDTO.class))
+                .toList();
+
+
+        Booking booking = new Booking();
+
+        booking.setCustomer(customer);
+        booking.setDateOfBooking(LocalDate.now());
+        booking.setStartDate(initialDetails.getStartDate());
+        booking.setEndDate(initialDetails.getEndDate());
+        booking.setDestination(normalizedDestination);
+        booking.setGroupSize(initialDetails.getGroupSize());
+
+        bookingRepo.save(booking);
+
+
+        return new AvailableVehicleDTO(booking.getBookingId(), normalizedDestination, vehicleDTOs, "available vehicles for the destination: " + normalizedDestination);
+    }
+
+
+    /// ///////////////
+
+    // Select vehicle from Available Vehicles
+    public BookingDTO vehicleSelection(Long bid, VehicleSelectionDTO dto) {
+
+        Booking booking = bookingRepo.findById(bid)
+                .orElseThrow(() -> new ResourceNotFound("bookinId not (found / registered) in db "));
+
+        List<Vehicle> selectedVehicles = vehicleRepo.findAllById(dto.getVehicleIds());
+
+        for (Vehicle vehicle : selectedVehicles) {
+            List<Booking> conflicts = bookingRepo.findBookingsConflicts(
+                    vehicle.getVehicleId(),
+                    booking.getStartDate(),
+                    booking.getEndDate()
+            );
+
+            if (!conflicts.isEmpty()) {
+                throw new BadRequestException("Vehicle ID " + vehicle.getVehicleId() + " is already booked from " +
+                        conflicts.get(0).getStartDate() + " to " + conflicts.get(0).getEndDate());
             }
+        }
 
-            List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
-		    				 .map(v -> modelMapper.map(v, VehicleDTO.class))
-		    				 .toList();
+        // Calculate number of days
+        long days = ChronoUnit.DAYS.between(booking.getStartDate(), booking.getEndDate());
+        if (days <= 0) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
 
+        double totalAmount = selectedVehicles.stream().mapToDouble(v -> v.getChargePerDay() * days).sum();
 
+        booking.setAmount(totalAmount);
+        booking.setVehicle(selectedVehicles);
+        Booking savedBooking = bookingRepo.save(booking);
 
-		    Booking booking = new Booking();
+        BookingDTO bookingDTO = modelMapper.map(savedBooking, BookingDTO.class);
 
-		    booking.setCustomer(customer);
-		    booking.setDateOfBooking(LocalDate.now());
-		    booking.setStartDate(initialDetails.getStartDate());
-		    booking.setEndDate(initialDetails.getEndDate());
-		    booking.setDestination(normalizedDestination);
-		    booking.setGroupSize(initialDetails.getGroupSize());
+        List<VehicleDTO> vehicleDTOList = selectedVehicles.stream()
+                .map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
 
-		   bookingRepo.save(booking);
+        bookingDTO.setVehicle(vehicleDTOList);
+        bookingDTO.setMessage("Booking will confirm after payment!!");
 
+        return bookingDTO;
+    }
 
-		    return new AvailableVehicleDTO (booking.getBookingId(),normalizedDestination,vehicleDTOs,"available vehicles for the destination: "+normalizedDestination);
-		}
-
-
-//////////////////
-
-	// Select vehicle from Available Vehicles
-	public BookingDTO vehicleSelection(Long bid, VehicleSelectionDTO dto) {
-
-		Booking booking=bookingRepo.findById(bid)
-				.orElseThrow(() -> new ResourceNotFound("bookinId not (found / registered) in db "));
-
-		List<Vehicle> selectedVehicles = vehicleRepo.findAllById(dto.getVehicleIds());
-
-		for (Vehicle vehicle : selectedVehicles) {
-	        List<Booking> conflicts = bookingRepo.findBookingsConflicts(
-	            vehicle.getVehicleId(),
-	            booking.getStartDate(),
-	            booking.getEndDate()
-	        );
-
-	        if (!conflicts.isEmpty()) {
-	            throw new BadRequestException("Vehicle ID " + vehicle.getVehicleId() + " is already booked from " +
-	                conflicts.get(0).getStartDate() + " to " + conflicts.get(0).getEndDate());
-	        }
-	    }
-
-		// Calculate number of days
-		long days = ChronoUnit.DAYS.between(booking.getStartDate(), booking.getEndDate());
-		if (days <= 0) {
-			throw new IllegalArgumentException("End date must be after start date");
-		}
-
-		double totalAmount = selectedVehicles.stream().mapToDouble(v -> v.getChargePerDay() * days).sum();
-
-		booking.setAmount(totalAmount);
-		booking.setVehicle(selectedVehicles);
-		Booking savedBooking = bookingRepo.save(booking);
-
-		BookingDTO bookingDTO = modelMapper.map(savedBooking, BookingDTO.class);
-
-		List<VehicleDTO> vehicleDTOList = selectedVehicles.stream()
-				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
-
-		bookingDTO.setVehicle(vehicleDTOList);
-		bookingDTO.setMessage("Booking will confirm after payment!!");
-
-		return bookingDTO;
-	}
-
-////////////////////
+    /// /////////////////
 
 //	update destination and fetch available vehicles
-	public AvailableVehicleDTO updateDestination(Long bookingId, InitialBookingDTO newDestination) {
+    public AvailableVehicleDTO updateDestination(Long bookingId, InitialBookingDTO newDestination) {
 
-		Booking booking = bookingRepo.findById(bookingId)
-				.orElseThrow(() -> new ResourceNotFound("booking not found with ID: " + bookingId));
-
-
-		if (booking.getStatus() != BookingStatus.PENDING) {
-			throw new BadRequestException("Destination can only be changed if booking is PENDING.");
-		}
-
-        String normalizedNewDestination=TextNormalizer.upper(newDestination.getDestination());
-
-		booking.setDestination(normalizedNewDestination);
-		booking.setStartDate(newDestination.getStartDate());
-		booking.setEndDate(newDestination.getEndDate());
-		booking.setGroupSize(newDestination.getGroupSize());
-		bookingRepo.save(booking);
-
-		List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedNewDestination);
-		List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
-				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFound("booking not found with ID: " + bookingId));
 
 
-        return new AvailableVehicleDTO(bookingId, normalizedNewDestination, vehicleDTOs, "available vehicles for the destination: "+normalizedNewDestination);
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new BadRequestException("Destination can only be changed if booking is PENDING.");
+        }
 
-	}
+        String normalizedNewDestination = TextNormalizer.upper(newDestination.getDestination());
+
+        booking.setDestination(normalizedNewDestination);
+        booking.setStartDate(newDestination.getStartDate());
+        booking.setEndDate(newDestination.getEndDate());
+        booking.setGroupSize(newDestination.getGroupSize());
+        bookingRepo.save(booking);
+
+        List<Vehicle> availableVehicles = vehicleRepo.findAvailableVehiclesByCity(normalizedNewDestination);
+        List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
+                .map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
+
+
+        return new AvailableVehicleDTO(bookingId, normalizedNewDestination, vehicleDTOs, "available vehicles for the destination: " + normalizedNewDestination);
+
+    }
+
+    //Resume booking
+    public ResumeBookingDTO resumeBooking(Long bid) {
+
+        Booking booking = bookingRepo.findById(bid)
+                .orElseThrow(() -> new ResourceNotFound("Initial Booking not done."));
+
+        String normalizedDestination = booking.getDestination();
+
+        List<Vehicle> availableVehicles =
+                vehicleRepo.findAvailableVehiclesByCity(normalizedDestination);
+
+        if (availableVehicles.isEmpty()) {
+            throw new NoVehiclesAvailableException(
+                    "No vehicles available for " + normalizedDestination);
+        }
+
+        List<VehicleDTO> vehicleDTOs = availableVehicles.stream()
+                .map(v -> modelMapper.map(v, VehicleDTO.class))
+                .toList();
+
+        return new ResumeBookingDTO(
+                booking.getBookingId(),
+                booking.getStartDate(),
+                booking.getEndDate(),
+                booking.getDestination(),
+                booking.getGroupSize(),
+                vehicleDTOs,
+                "Available vehicles for destination: " + booking.getDestination()
+        );
+    }
 
 }
