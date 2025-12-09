@@ -9,15 +9,21 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "EzeeRide API", version = "1.0", description = "Backend APIs"),
-        security = @SecurityRequirement(name = "bearerAuth") // Apply globally
+        info = @Info(
+                title = "EzeeRide API",
+                version = "1.0",
+                description = "Backend APIs"
+        ),
+        security = @SecurityRequirement(name = "bearerAuth")
 )
+
 @SecurityScheme(
         name = "bearerAuth",                  // Name referenced in SecurityRequirement
         type = SecuritySchemeType.HTTP,       // HTTP auth type
         scheme = "bearer",                    // Bearer token
         bearerFormat = "JWT"                  // Optional, just info
 )
+
 public class SwaggerConfig {
     // No code needed here, annotation-based config
 }

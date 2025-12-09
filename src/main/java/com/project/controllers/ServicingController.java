@@ -21,29 +21,35 @@ import com.project.services.ServicingService;
 @RequestMapping("/api/service")
 public class ServicingController {
 
-	@Autowired
-	private ServicingService service;
-	
-	
-	@PostMapping("/add/{vid}")
-	public ServicingDTO RestPost(@PathVariable Long vid,@RequestBody ServiceRequestDTO details) {
-		return service.addToService(vid,details);
-	}
-	
-	@GetMapping
-	public List<ServicingDTO> getAll() {
-		return service.getAllServiceDetails();
-	}
-	
-	@GetMapping("/{sid}")
-	public Servicing get(@PathVariable Long sid) {
-		return service.getById(sid);
-	}
-	
-	@PatchMapping("/update/{sid}")
-	public ServicingDTO patch(@PathVariable Long sid,@RequestBody ServiceStatusDTO updatedDetails ) {
-		return service.update(sid,updatedDetails);
-	}
-	
-	
+    @Autowired
+    private ServicingService service;
+
+
+    @PostMapping("/add/{vehicleId}")
+    public ServicingDTO RestPost(@PathVariable Long vehicleId, @RequestBody ServiceRequestDTO details) {
+
+        return service.addToService(vehicleId, details);
+    }
+
+    @GetMapping
+    public List<ServicingDTO> getAll() {
+
+        return service.getAllServiceDetails();
+    }
+
+
+    @GetMapping("/{servicingId}")
+    public Servicing get(@PathVariable Long servicingId) {
+
+        return service.getById(servicingId);
+    }
+
+
+    @PatchMapping("/servicing-status/{servicingId}")
+    public ServicingDTO patch(@PathVariable Long servicingId, @RequestBody ServiceStatusDTO updatedDetails) {
+
+        return service.update(servicingId, updatedDetails);
+    }
+
+
 }

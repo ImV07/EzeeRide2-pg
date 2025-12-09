@@ -38,6 +38,7 @@ public class VehicleController {
 
     @PostMapping
     public VehicleResponseDTO postVehicle(@RequestBody VehicleAddDTO newVehicle) {
+
         return service.add(newVehicle);
     }
 
@@ -68,26 +69,26 @@ public class VehicleController {
     }
 
     //	get by vehicleId
-    @GetMapping("/{id}")
-    public VehicleResponseDTO restGetById(@PathVariable Long id) {
+    @GetMapping("/{vehicleId}")
+    public VehicleResponseDTO restGetById(@PathVariable Long vehicleId) {
 
-        return service.getById(id);
+        return service.getById(vehicleId);
 
     }
 
     //	remove by id
-    @DeleteMapping("/remove/{id}")
-    public String restDeleteById(@PathVariable Long id) {
+    @DeleteMapping("/remove/{vehicleId}")
+    public String restDeleteById(@PathVariable Long vehicleId) {
 
-        return service.vehicleDelete(id);
+        return service.vehicleDelete(vehicleId);
 
     }
 
     //	patch update by id
-    @PatchMapping("/update/{id}")
-    public VehicleResponseDTO restupdateById(@PathVariable Long id, @RequestBody VehicleAddDTO newDetails) {
+    @PatchMapping("/update/{vehicleId}")
+    public VehicleResponseDTO restupdateById(@PathVariable Long vehicleId, @RequestBody VehicleAddDTO newDetails) {
 
-        return service.updateVehicle(id, newDetails);
+        return service.updateVehicle(vehicleId, newDetails);
     }
 
 }

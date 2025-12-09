@@ -1,6 +1,7 @@
 package com.project.controllers;
 
 import com.project.dto.*;
+import com.project.exception.ResourceNotFound;
 import com.project.repository.CustomerRepo;
 import com.project.util.PageMapper;
 import com.project.util.PageResponse;
@@ -60,28 +61,32 @@ public class CustomerController {
 		return PageMapper.map(pageDate,customer-> modelMapper.map(customer,CustomerDTO.class));
 	}
 
+
 	// get by id
-	@GetMapping("/{id}")
-	public CustomerDTO restGetById(@PathVariable Long id) {
-		return service.getById(id);
-	}
+	@GetMapping("/{customerId}")
+	public CustomerDTO restGetById(@PathVariable Long customerId) {
+
+        Customer customer=customerRepo.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFound("Customer not found with id: " + customerId));
+
+        SecurityUtil.validateAccess(customer);
+
+        return modelMapper.map(customer,CustomerDTO.class);
+
+    }
 
 	// delete by id
-	@DeleteMapping("/delete/{id}")
-	public String deleteById(@PathVariable Long id) {
+	@DeleteMapping("/delete/{customerId}")
+	public String deleteById(@PathVariable Long customerId) {
 
-		return service.deleteCustomer(id);
+		return service.deleteCustomer(customerId);
 	}
 
 	// update by id
-	@PatchMapping("/update/{id}")
-	public CustomerDTO restUpdate(@PathVariable Long id,@Valid @RequestBody CustomerUpdateDTO updatedDetails) {
+	@PatchMapping("/update/{customerId}")
+	public CustomerDTO restUpdate(@PathVariable Long customerId,@Valid @RequestBody CustomerUpdateDTO updatedDetails) {
 
-		Customer existingCustomer = service.getEntityById(id);
-
-		SecurityUtil.validateAccess(existingCustomer);
-
-		return service.updateCustomer(id, updatedDetails);
+		return service.updateCustomer(customerId, updatedDetails);
 
 	}
 

@@ -29,155 +29,153 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/booking")
 public class BookingController {
 
-	@Autowired
-	private EmailService emailSender;
+    @Autowired
+    private EmailService emailSender;
 
-	@Autowired
-	private BookingRepo bookingRepo;
+    @Autowired
+    private BookingRepo bookingRepo;
 
-	@Autowired
-	private BookingService bookingService;
+    @Autowired
+    private BookingService bookingService;
 
-	@Autowired
-	private ModelMapper modelMapper;
+    @Autowired
+    private ModelMapper modelMapper;
 
-	private static final Logger logger = LoggerFactory.getLogger(BookingController.class);
+    private static final Logger logger = LoggerFactory.getLogger(BookingController.class);
 
-//////////////////////////
-	// Get All Booking
-@GetMapping
-public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int page,
-                                            @RequestParam(defaultValue ="4") int size) {
+    /// ///////////////////////
+    // Get All Booking
+    @GetMapping
+    public PageResponse<BookingDTO> restGetAll(@RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "4") int size) {
 
-    Pageable pageable= PageRequest.of(page, size);
-    Page<Booking> pageDate= bookingRepo.findAll(pageable);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Booking> pageDate = bookingRepo.findAll(pageable);
 
-    return PageMapper.map(pageDate, booking-> modelMapper.map(booking,BookingDTO.class));
-}
-	
-	
-//////////////////////////
-
-	// Fetch vehicles for destination
-	@PostMapping("/{cid}")
-	public AvailableVehicleDTO initiateBooking(@PathVariable Long cid, @RequestBody InitialBookingDTO basicDetails) {
-		return bookingService.initiateBooking(cid, basicDetails);
-	}
-
-//////////////////////////
-
-    @GetMapping("/view/{bid}")
-    public ResumeBookingDTO viewBooking(@PathVariable Long bid){
-
-        return bookingService. resumeBooking(bid);
+        return PageMapper.map(pageDate, booking -> modelMapper.map(booking, BookingDTO.class));
     }
 
-//////////////////////////
 
-	// customer select's vehicles for booking
-	@PostMapping("/select-vehicle/{bid}")
-	public BookingDTO selectVehicle(@PathVariable Long bid, @RequestBody VehicleSelectionDTO dto) {
-		return bookingService.vehicleSelection(bid, dto);
-	}
+    /// ///////////////////////
 
-//////////////////////////
+    // Fetch vehicles for destination
+    @PostMapping("/initiate/{customerId}")
+    public AvailableVehicleDTO initiateBooking(@PathVariable Long customerId, @RequestBody InitialBookingDTO basicDetails) {
+        return bookingService.initiateBooking(customerId, basicDetails);
+    }
 
-	
-	// [confirm after pay] / [cancel with reason]
-	@Transactional
-	@PatchMapping("/status/{id}")
-	public String updatePaymentStatus(@PathVariable Long id, @RequestBody PaymentUpdateDTO paymentUpdate) {
+    /// ///////////////////////
 
-		Booking booking = bookingRepo.findById(id)
-				.orElseThrow(() -> new ResourceNotFound("Booking not found with booking ID: " + id));
+    @GetMapping("/resume/{bookingId}")
+    public ResumeBookingDTO viewBooking(@PathVariable Long bookingId) {
 
-		if(booking.getStatus()==BookingStatus.CANCELED) {
-			throw new BadRequestException("BOOKING IS CANCELLED, FURTHER PROCESS NOT POSSIBLE !!!");
-		}
-		
-		booking.setPaymentStatus(paymentUpdate.isPaymentStatus());
+        return bookingService.resumeBooking(bookingId);
 
-		String toEmail = booking.getCustomer().getEmail();
+    }
 
-		SecurityUtil.validateAccess(booking.getCustomer());
+    /// ///////////////////////
 
-		if (paymentUpdate.isPaymentStatus()) {
-			booking.setStatus(BookingStatus.CONFIRM);
-			booking.setCancelReason(null);
+    // customer select's vehicles for booking
+    @PostMapping("/select-vehicle/{bookingId}")
+    public BookingDTO selectVehicle(@PathVariable Long bookingId, @RequestBody VehicleSelectionDTO dto) {
 
-			booking.getVehicle().forEach(vehicle -> vehicle.setAvailable(false));
+        return bookingService.vehicleSelection(bookingId, dto);
 
-			String sub1 = "Booking Confirmed";
-			String body1 = booking.getCustomer().getCname() + "\n\nYour booking is confirmed with bookingId: "
-					+ booking.getBookingId() + "\nYour customerId is: " + booking.getCustomer().getCustomerId()
-					+ "\n\nEzeeRide";
+    }
 
-			emailSender.sendEmail(toEmail, sub1, body1);
-			logger.info("Confirmation mail sent to customer: " + toEmail);
+    /// ///////////////////////
 
-		} else {
 
-			if (paymentUpdate.getCancelReason() == null) {
-				throw new BadRequestException("Cancel reason required");
-			}
+    // [confirm after pay] / [cancel with reason]
+    @Transactional
+    @PatchMapping("/payment-status/{bookingId}")
+    public String updatePaymentStatus(@PathVariable Long bookingId, @RequestBody PaymentUpdateDTO paymentUpdate) {
 
-			booking.setStatus(BookingStatus.CANCELED);
-			booking.setCancelReason(paymentUpdate.getCancelReason());
-			booking.getVehicle().forEach(vehicle -> vehicle.setAvailable(true));
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFound("Booking not found with booking ID: " + bookingId));
 
-			String sub2 = "Booking Cancelled";
-			String body2 = booking.getCustomer().getCname() + "\n\nYour booking is cancelled with bookingId: "
-					+ booking.getBookingId() + "\n\nBooking Amount of Rs" + booking.getAmount()
-					+ " refunded successfully !!!" + "\n\nEzeeRide";
+        SecurityUtil.validateAccess(booking.getCustomer());
 
-			emailSender.sendEmail(toEmail, sub2, body2);
-			logger.info("Canceled/Refund mail sent to customer: " + toEmail);
+        if (booking.getStatus() == BookingStatus.CANCELED) {
+            throw new BadRequestException("BOOKING IS CANCELLED, FURTHER PROCESS NOT POSSIBLE !!!");
+        }
 
-		}
+        booking.setPaymentStatus(paymentUpdate.isPaymentStatus());
 
-		bookingRepo.save(booking);
-		return "Booking updated. Current status: " + booking.getStatus();
-	}
+        String toEmail = booking.getCustomer().getEmail();
 
-//////////////////////////
+        if (paymentUpdate.isPaymentStatus()) {
+            booking.setStatus(BookingStatus.CONFIRM);
+            booking.setCancelReason(null);
 
-	
-	//	get by bookingId
-	@GetMapping("/{bid}")
-	public BookingDTO getById(@PathVariable Long bid) {
+            booking.getVehicle().forEach(vehicle -> vehicle.setAvailable(false));
 
-		Booking existingBooking = bookingRepo.findById(bid)
-				.orElseThrow(() -> new ResourceNotFound("Booking not found with booking ID " + bid));
+            String sub1 = "Booking Confirmed";
+            String body1 = booking.getCustomer().getCname() + "\n\nYour booking is confirmed with bookingId: "
+                    + booking.getBookingId() + "\nYour customerId is: " + booking.getCustomer().getCustomerId()
+                    + "\n\nEzeeRide";
 
-		Customer customer = existingBooking.getCustomer();
+            emailSender.sendEmail(toEmail, sub1, body1);
+            logger.info("Confirmation mail sent to customer: " + toEmail);
 
-		SecurityUtil.validateAccess(customer);
+        } else {
 
-		BookingDTO bookingDTO = modelMapper.map(existingBooking, BookingDTO.class);
+            if (paymentUpdate.getCancelReason() == null) {
+                throw new BadRequestException("Cancel reason required");
+            }
 
-		List<VehicleDTO> vehicleDTOs = existingBooking.getVehicle().stream()
-				.map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
+            booking.setStatus(BookingStatus.CANCELED);
+            booking.setCancelReason(paymentUpdate.getCancelReason());
+            booking.getVehicle().forEach(vehicle -> vehicle.setAvailable(true));
 
-		bookingDTO.setVehicle(vehicleDTOs);
-		bookingDTO.setMessage("Your booking information");
-		logger.info("ADMIN / User: " + customer.getCname() + " checked booking");
-		return bookingDTO;
-	}
+            String sub2 = "Booking Cancelled";
+            String body2 = booking.getCustomer().getCname() + "\n\nYour booking is cancelled with bookingId: "
+                    + booking.getBookingId() + "\n\nBooking Amount of Rs" + booking.getAmount()
+                    + " refunded successfully !!!" + "\n\nEzeeRide";
 
-//////////////////////////
+            emailSender.sendEmail(toEmail, sub2, body2);
+            logger.info("Canceled/Refund mail sent to customer: " + toEmail);
 
-	
-	//	update destination by bookingId
-	@PatchMapping("/update/destination/{bid}")
-	public AvailableVehicleDTO updateDestination(@PathVariable Long bid, @RequestBody InitialBookingDTO updateBooking) {
+        }
 
-		Booking existingBooking = bookingRepo.findById(bid)
-				.orElseThrow(() -> new ResourceNotFound("Booking not exist with booking id: " + bid));
+        bookingRepo.save(booking);
+        return "Booking updated. Current status: " + booking.getStatus();
+    }
 
-		SecurityUtil.validateAccess(existingBooking.getCustomer());
+    /// ///////////////////////
 
-		return bookingService.updateDestination(bid, updateBooking);
 
-	}
+    //	get by bookingId
+    @GetMapping("/{bookingId}")
+    public BookingDTO getById(@PathVariable Long bookingId) {
+
+        Booking existingBooking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFound("Booking not found with booking ID " + bookingId));
+
+        Customer customer = existingBooking.getCustomer();
+
+        SecurityUtil.validateAccess(customer);
+
+        BookingDTO bookingDTO = modelMapper.map(existingBooking, BookingDTO.class);
+
+        List<VehicleDTO> vehicleDTOs = existingBooking.getVehicle().stream()
+                .map(vehicle -> modelMapper.map(vehicle, VehicleDTO.class)).collect(Collectors.toList());
+
+        bookingDTO.setVehicle(vehicleDTOs);
+        bookingDTO.setMessage("Your booking information");
+        logger.info("ADMIN / User: " + customer.getCname() + " checked booking");
+        return bookingDTO;
+    }
+
+    /// ///////////////////////
+
+
+    //	update destination by bookingId
+    @PatchMapping("/update-destination/{bookingId}")
+    public AvailableVehicleDTO updateDestination(@PathVariable Long bookingId, @RequestBody InitialBookingDTO updateBooking) {
+
+        return bookingService.updateDestination(bookingId, updateBooking);
+
+    }
 
 }

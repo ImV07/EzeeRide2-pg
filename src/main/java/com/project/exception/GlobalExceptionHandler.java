@@ -6,6 +6,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,6 +47,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateRequestException.class)
     public ResponseEntity<String> handleDuplicateRequest(DuplicateRequestException dre) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(dre.getMessage());
+    }
+
+    @ExceptionHandler(BookingStatusException.class)
+    public ResponseEntity<?> handleBookingStatusException(BookingStatusException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", true);
+        body.put("message", ex.getMessage());
+        body.put("timestamp", LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
 }

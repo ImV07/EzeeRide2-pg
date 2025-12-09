@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.project.dto.*;
+import com.project.exception.BookingStatusException;
 import com.project.exception.NoVehiclesAvailableException;
+import com.project.security.SecurityUtil;
 import com.project.util.TextNormalizer;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,8 @@ public class BookingService {
     public AvailableVehicleDTO initiateBooking(Long cid, InitialBookingDTO initialDetails) {
         Customer customer = customerRepo.findById(cid)
                 .orElseThrow(() -> new ResourceNotFound("Customer not found"));
+
+        SecurityUtil.validateAccess(customer);
 
         long days = ChronoUnit.DAYS.between(initialDetails.getStartDate(), initialDetails.getEndDate());
         if (days <= 0) throw new IllegalArgumentException("End date must be after start date");
@@ -83,6 +87,8 @@ public class BookingService {
 
         Booking booking = bookingRepo.findById(bid)
                 .orElseThrow(() -> new ResourceNotFound("bookinId not (found / registered) in db "));
+
+        SecurityUtil.validateAccess(booking.getCustomer());
 
         List<Vehicle> selectedVehicles = vehicleRepo.findAllById(dto.getVehicleIds());
 
@@ -130,6 +136,7 @@ public class BookingService {
         Booking booking = bookingRepo.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFound("booking not found with ID: " + bookingId));
 
+        SecurityUtil.validateAccess(booking.getCustomer());
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BadRequestException("Destination can only be changed if booking is PENDING.");
@@ -157,6 +164,14 @@ public class BookingService {
 
         Booking booking = bookingRepo.findById(bid)
                 .orElseThrow(() -> new ResourceNotFound("Initial Booking not done."));
+
+        SecurityUtil.validateAccess(booking.getCustomer());
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+
+            throw new BookingStatusException("Booking cannot resumed. Current Status is:"+booking.getStatus());
+        }
+
 
         String normalizedDestination = booking.getDestination();
 
