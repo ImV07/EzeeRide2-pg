@@ -35,4 +35,4 @@ build/
 #src/main/resources/application.properties
 .env
 src/main/resources/application-dev.properties
-src/main/java/com/project/controllers/EmailTestController
+src/main/java/com/project/controllers/EmailTestController.java
