@@ -1,13 +1,20 @@
 package com.project.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDate;
 import java.util.List;
 
 public class ResumeBookingDTO {
 
     private Long bookingId;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate startDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate endDate;
+
     private String destination;
     private int groupSize;
     private List<VehicleDTO> availableVehicles;

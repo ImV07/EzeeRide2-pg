@@ -180,7 +180,7 @@ public class BookingService {
 
         if (availableVehicles.isEmpty()) {
             throw new NoVehiclesAvailableException(
-                    "No vehicles available for " + normalizedDestination);
+                    "Currently no vehicles available for " + normalizedDestination);
         }
 
         List<VehicleDTO> vehicleDTOs = availableVehicles.stream()

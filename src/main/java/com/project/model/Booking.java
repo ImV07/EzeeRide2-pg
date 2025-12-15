@@ -28,15 +28,12 @@ public class Booking {
     @Column(name = "booking_id")
     private Long bookingId;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "date_of_booking")
     private LocalDate dateOfBooking;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "start_date")
     private LocalDate startDate;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "end_date")
     private LocalDate endDate;
 

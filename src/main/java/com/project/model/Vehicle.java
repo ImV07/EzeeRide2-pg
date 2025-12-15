@@ -66,7 +66,6 @@ public class Vehicle {
     @Column(name = "vehicle_condition")
     private String vehicleCondition;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "insurance_date")
     private LocalDate insuranceDate;
 
