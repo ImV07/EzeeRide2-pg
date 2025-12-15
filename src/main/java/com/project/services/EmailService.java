@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +27,11 @@ public class EmailService {
     @Value("${email.from}")
     private String fromEmail;
 
+    @Async
     public void sendEmail(String toEmail, String subject, String body) {
+
+        System.out.println("Email thread: " + Thread.currentThread().getName());
+
 
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
@@ -43,7 +48,7 @@ public class EmailService {
             request.setBody(mail.build());
             sendGrid.api(request);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send email: " + e.getMessage());
+            System.err.println("Failed to send email: " + e.getMessage()+" to "+toEmail);
         }
     }
 }
@@ -62,5 +67,5 @@ public class EmailService {
 //        jms.send(message);
 //    }
 
-	
+
 //}
