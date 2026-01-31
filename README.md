@@ -1,3 +1,9 @@
+## 🚗 Vehicle Booking Management System
+
+A Spring Boot backend application that provides secure REST APIs for vehicle booking, user authentication using JWT, and role-based access control.
+The system allows users to create bookings, view available vehicles, and manage their booking history, while admins have elevated privileges to manage vehicles, users, and view all bookings.
+
+
 ### 🌍 Deployment
 This application is deployed on **Render**.
 
