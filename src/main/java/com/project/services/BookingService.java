@@ -27,6 +27,8 @@ import com.project.repository.VehicleRepo;
 @Service
 public class BookingService {
 
+
+
     @Autowired
     private VehicleRepo vehicleRepo;
 
